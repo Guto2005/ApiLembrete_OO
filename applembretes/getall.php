@@ -1,6 +1,6 @@
 <?php
 
-requrie('./../config.php')
+require('./../config.php');
 
 $metodo= strtoupper($_SERVER['REQUEST_METHOD']);
 
@@ -12,12 +12,12 @@ if ($metodo==='GET') {
         $dados=$sql->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($dados as $linha) {
-            $array['result']=[
+            $array['result'][]=[
                 'id'=>$linha['idLembrete'],
                 'titulo'=>$linha['tituloLembrete']
-            ]
+            ];
         }
-
+        
     }
     else{
         $array['error'] = 'Erro: Não há lembretes';
@@ -28,4 +28,4 @@ if ($metodo==='GET') {
     $array['error'] = "Erro: Ação inválida - método permitido apenas get";
 }
 
-require('./../return.php')
+require('./../return.php');
