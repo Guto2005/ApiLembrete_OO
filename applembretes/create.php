@@ -16,6 +16,13 @@ if ($metodo==='POST') {
         $sql->bindValue(':corpo',$corpo);
         $sql->execute();
 
+        $id = $pdo->lastInsertId();
+
+        $array['result'] = [
+            "id" => $id,
+            "tituloLembrete" => $titulo,
+            "corpoLembrete" => $corpo
+        ];
 
     } else {
         $array['error'] = 'Erro: Valores nulos ou inválidos';
@@ -29,6 +36,6 @@ require('./../return.php');
 
 /* DESAFIOS para 07AGO
 - Corrigir o problema com acentuação no retorno do JSON - Problema de Enconde
-- Como faço para pegar o id do último item inserido na tabela através do PDO
+- Como faço para pegar o id do último item inserido na tabela através do PDO (create)
 - Como retornar um array(json) contendo os dados do último elemento inserido
 */
