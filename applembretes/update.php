@@ -1,53 +1,44 @@
 <?php
 
 require('./../config.php');
+use Applembretes\Dao\LembreteDAOMySql;
+use Applembretes\Models\Lembrete;
 
-$metodo= strtoupper($_SERVER['REQUEST_METHOD']);
+$metodo = strtoupper($_SERVER['REQUEST_METHOD']);
 
-if ($metodo==='PUT') {
+if ($metodo === 'PUT') {
 
-    parse_str(file_get_contents("php://input"),$delete); 
+    parse_str(file_get_contents("php://input"), $data);
 
-    $id = $UPDATE['id'] ?? null;
+    $id = $data['id'] ?? null;
+    $titulo = $data['titulo'] ?? null;
+    $corpo = $data['corpo'] ?? null;
 
-    //para proteger o id de colocarem letras//
-    $id = filter_var($id,FILTER_VALIDATE_INT);
-        //código delete
-        if ($id) {
-            $sql=$pdo->prepare("SELECT * FROM lembrete WHERE idLembrete=:id");
-            $sql->bindValue(":id",$id);
-            $sql->execute();
-    
-            if ($sql->rowCount()>0) {
-        
-                $sql = $pdo->prepare("UPDATE FROM lembrete WHERE idLembrete=:id");
-                $sql->bindValue(":id", $id);
-                $sql->execute();
-                
-                $array['result']='Item atualizado com sucesso!';
+    $id = filter_var($id, FILTER_VALIDATE_INT);
+    $titulo = filter_var($titulo,FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $corpo = filter_var($corpo,FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
-        }
-        else {
-            $array['error'] = "Erro: Id inexistente!";
+    if ($id && $titulo && $corpo) {
+        $sql = $pdo->prepare("SELECT * FROM lembrete WHERE idLembrete = :id");
+        $sql->bindValue(":id", $id);
+        $sql->execute();
+
+        if ($sql->rowCount() > 0) {
+            $meuLembrete = new Lembrete($id,$titulo,$corpo);
+            $meuLembreteDAOMySql = new LembreteDAOMySql($pdo);
+            $meuLembreteDAOMySql->updateLembrete($lembrete);
+
+            $meuLembreteDAOMySql->getLembrete()
+
+            $array['result'] = 'Item atualizado com sucesso!';
+        } else {
+            $array['error'] = 'Erro: Id inexistente!';
         }
     } else {
-
-        $array['error'] = "Erro: Id Inválido";
+        $array['error'] = 'Erro: Dados inválidos!';
     }
- 
 } else {
-    $array['error'] = "Erro: Ação inválida - método permitido apenas PUT";
+    $array['error'] = 'Erro: Ação inválida - método permitido apenas PUT';
 }
 
 require('./../return.php');
-
-/*
-ATIVIDADE UC09-001 - Criar a rota de atualizar UPDATE.php
-Executar os seguintes testes:
-1-chamada com metodo errado
-2-chamar sem enviar parâmetro ou todos os parâmetros
-3-chamar enviando id que não exista na tabela
-4-usar getall para ver o que foi atualizado na lista
-5-usar get para ver apenas o que foi atualizado
-6-mostrar no BD o que foi atualizado via API
-*/

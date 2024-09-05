@@ -1,6 +1,10 @@
 <?php
 
-require('./../config.php');
+require __DIR__ . "/../config.php";
+require __DIR__ . "/dao/LembreteDAOMySql.php";
+
+use Applembretes\Models\Lembrete;
+use Applembretes\Dao\LembreteDAOMySql;
 
 $metodo= strtoupper($_SERVER['REQUEST_METHOD']);
 
@@ -11,18 +15,22 @@ if ($metodo==='POST') {
 
     if ($titulo && $corpo) {
 
-        $sql=$pdo->prepare("INSERT INTO lembrete (tituloLembrete,corpoLembrete) VALUES (:titulo,:corpo)");
-        $sql->bindValue(':titulo',$titulo);
-        $sql->bindValue(':corpo',$corpo);
-        $sql->execute();
+        try {
 
-        $id = $pdo->lastInsertId();
+            $MeuLembrete = new Lembrete(null,$titulo, $corpo);
+            $MeuLembreteDAOMySql = new LembreteDAOMySql($PDO);
+            $novoLembrete=$meuLembreteDAOMySql->addLembrete($MeuLembrete);
+     
+             $array['result'] = [
+                 "id" => $id,
+                 "tituloLembrete" => $titulo,
+                 "corpoLembrete" => $corpo
+             ];
 
-        $array['result'] = [
-            "id" => $id,
-            "tituloLembrete" => $titulo,
-            "corpoLembrete" => $corpo
-        ];
+
+        } catch (\Throwable $th) {
+            $array["error"] = $th->getMessage();
+        }
 
     } else {
         $array['error'] = 'Erro: Valores nulos ou inválidos';

@@ -1,53 +1,51 @@
 <?php
+require __DIR__ . "/../config.php";
+require __DIR__ . "/dao/LembreteDAOMySql.php";
 
-require('./../config.php');
+use Applembretes\Dao\LembreteDAOMySql;
+ 
+$metodo = strtoupper($_SERVER['REQUEST_METHOD']);
 
-$metodo= strtoupper($_SERVER['REQUEST_METHOD']);
 
-if ($metodo==='DELETE') {
+try {
 
-    parse_str(file_get_contents("php://input"),$delete); 
-
+if ($metodo === 'DELETE') {
+ 
+    parse_str(file_get_contents("php://input"),$delete);
+ 
     $id = $delete['id'] ?? null;
-
-    //para proteger o id de colocarem letras//
+ 
     $id = filter_var($id,FILTER_VALIDATE_INT);
-        //código delete
-        if ($id) {
-            $sql=$pdo->prepare("SELECT * FROM lembrete WHERE idLembrete=:id");
-            $sql->bindValue(":id",$id);
-            $sql->execute();
-    
-            if ($sql->rowCount()>0) {
-        
-                $sql = $pdo->prepare("DELETE FROM lembrete WHERE idLembrete=:id");
-                $sql->bindValue(":id", $id);
-                $sql->execute();
-                
-                $array['result']='Item excluído com sucesso!';
-
-        }
-        else {
-            $array['error'] = "Erro: Id inexistente!";
+   
+    if ($id) {   
+            
+        $sql = $pdo->prepare("SELECT * FROM lembrete WHERE idLembrete=:id");
+        $sql->bindValue(":id", $id);
+        $sql->execute();
+       
+        if ($sql->rowCount() > 0) {
+           
+            $meuLembreteDAOMySql = new LembreteDAOMySql($pdo);
+            $meuLembreteDAOMySql->removeLembrete($id);
+ 
+            $array['result']='Item excluído com sucesso!';
+       
+        }else {
+            $array['error'] = 'Erro: Id Inexistente!';    
         }
     } else {
-
-        $array['error'] = "Erro: Id Inválido";
+        $array['error'] = 'Erro: Id nulo ou inválido!';
     }
- 
 } else {
-    $array['error'] = "Erro: Ação inválida - método permitido apenas DELETE";
+    $array['error'] = 'Erro: Ação inválida - método permitido apenas DELETE';
 }
 
-require('./../return.php');
+} catch (\Throwable $th) {
+    $array['error'] = $th->getMessage();
+}finally{
+    require __DIR__ . "/../return.php";
+}
 
-/*
-ATIVIDADE UC09-001 - Criar a rota de atualizar UPDATE.php
-Executar os seguintes testes:
-1-chamada com metodo errado
-2-chamar sem enviar parâmetro ou todos os parâmetros
-3-chamar enviando id que não exista na tabela
-4-usar getall para ver o que foi atualizado na lista
-5-usar get para ver apenas o que foi atualizado
-6-mostrar no BD o que foi atualizado via API
-*/
+
+
+
